@@ -1,0 +1,77 @@
+Lab---2
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Academic Profile Dashboard - Nazia Batool</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:linear-gradient(135deg,#dbeafe,#ffffff,#bfdbfe);padding:20px;min-height:100vh}
+.header{background:linear-gradient(90deg,#1e3a8a,#3b82f6);color:#fff;text-align:center;padding:25px;border-radius:10px;margin-bottom:20px}
+.header h1{font-size:22px}
+.header p{font-size:14px;margin-top:5px;opacity:.9}
+.container{display:grid;grid-template-columns:1fr 2fr 1fr;gap:20px;max-width:1200px;margin:auto}
+.card{background:#fff;border-radius:10px;padding:25px;box-shadow:0 2px 10px rgba(0,0,0,.08);border-top:4px solid #3b82f6}
+.card h3{color:#1e3a8a;margin-bottom:15px;padding-bottom:10px;border-bottom:1px solid #eee}
+.btn{display:block;width:100%;background:#e0f2fe;border:1px solid #bae6fd;padding:12px;border-radius:6px;margin-bottom:12px;color:#0369a1;font-weight:bold;cursor:pointer;text-align:left;font-size:14px}
+.btn:hover{background:#0284c7;color:#fff}
+.profile h2{color:#1e3a8a;font-size:28px;margin-bottom:5px}
+.role{font-style:italic;color:#555;font-size:14px}
+.inst{color:#2563eb;font-weight:bold;font-size:14px;margin:8px 0 15px}
+.bio,.about p{font-size:14px;line-height:1.8;color:#444;text-align:justify}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.5);justify-content:center;align-items:center}
+.modal-content{background:#fff;padding:30px;border-radius:10px;max-width:400px;width:90%;text-align:center;position:relative}
+.close{position:absolute;top:10px;right:15px;font-size:22px;cursor:pointer}
+@media(max-width:900px){.container{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+<h1>WEBGIS DEVELOPMENT COURSE - LAB 2</h1>
+<p>Academic Profile Dashboard</p>
+</div>
+
+<div class="container">
+<div class="card">
+<h3>Quick Contact</h3>
+<button class="btn" onclick="showPopup('Email Contact','nazia.batool@gmail.com')">✉️ Email Contact</button>
+<button class="btn" onclick="showPopup('Phone Number','Nil')">📞 Phone Number</button>
+<button class="btn" onclick="showPopup('More Info','Nil')">ℹ️ More Info</button>
+</div>
+
+<div class="card">
+<h2>Nazia Batool</h2>
+<div class="role">Student / WebGIS Learner</div>
+<div class="inst">Institute of Geo Information and Earth Observation</div>
+<p class="bio">I am an enthusiastic and motivated student currently pursuing my studies at the Institute of Geo Information and Earth Observation. My academic journey is focused on exploring the dynamic fields of Geographic Information Systems (GIS), Remote Sensing, and spatial data science. I have a keen interest in learning modern web technologies and discovering how WebGIS platforms can be developed to visualize and analyze geographical data interactively. Through this WebGIS development course, I am gaining hands-on experience with HTML, CSS, JavaScript, and mapping libraries to build responsive layouts and practical applications. I look forward to enhancing my technical skills, working on innovative spatial projects, and contributing effectively to the field of geospatial technology.</p>
+</div>
+
+<div class="card about">
+<h3>About IGEO</h3>
+<p><strong>The Institute of Geo Information and Earth Observation (IGEO)</strong> is a premier center for excellence in geospatial education and research. The institute offers specialized programs designed to equip students with cutting-edge skills in GIS, Remote Sensing, and WebGIS development. With state-of-the-art labs and expert faculty guidance, IGEO fosters innovation in solving real-world geographical and environmental challenges.</p>
+</div>
+</div>
+
+<div class="modal" id="popup">
+<div class="modal-content">
+<span class="close" onclick="closePopup()">&times;</span>
+<h3 id="ptitle"></h3><br>
+<p id="ptext"></p>
+</div>
+</div>
+
+<script>
+function showPopup(title,text){
+document.getElementById('ptitle').innerText=title;
+document.getElementById('ptext').innerText=text;
+document.getElementById('popup').style.display='flex';
+}
+function closePopup(){
+document.getElementById('popup').style.display='none';
+}
+</script>
+
+</body>
+</html>
