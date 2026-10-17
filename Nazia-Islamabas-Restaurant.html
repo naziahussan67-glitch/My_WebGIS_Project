@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WebGIS Lab03 - 24-ARID-2233 NAZIA BATOOL - Islamabad Restaurants</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI', Arial, sans-serif;}
+body{height:100vh;display:flex;flex-direction:column;background:#f8fafc;}
+header{background:linear-gradient(90deg,#0f172a,#b45309);color:white;padding:14px;text-align:center;}
+header h1{font-size:17px;}
+header p{font-size:11px;opacity:.85;margin-top:3px;}
+.main{flex:1;display:flex;overflow:hidden;}
+.left{width:290px;background:white;border-right:1px solid #e2e8f0;padding:14px;overflow-y:auto;}
+.right{width:250px;background:white;border-left:1px solid #e2e8f0;padding:14px;overflow-y:auto;}
+.center{flex:1;position:relative;}
+#map{height:100%;width:100%;}
+h3{font-size:12px;text-transform:uppercase;color:#0f172a;border-bottom:2px solid #f59e0b;padding-bottom:6px;margin-bottom:12px;}
+.location-item{padding:11px;background:#fffbeb;border:1px solid #fde68a;border-radius:10px;margin-bottom:9px;cursor:pointer;transition:.2s;}
+.location-item:hover{background:#fef3c7;transform:translateX(3px);}
+.location-item.active{background:#b45309;color:white;border-color:#b45309;}
+.location-item.name{font-weight:700;font-size:13px;}
+.location-item.desc{font-size:11px;opacity:.8;margin-top:2px;}
+.info-box{background:#f1f5f9;border-radius:8px;padding:10px;margin-top:10px;}
+.info-box label{font-size:10px;color:#64748b;text-transform:uppercase;}
+.info-box.value{font-size:13px;font-weight:700;margin-top:2px;}
+.route-info{background:#1c1917;color:white;border-radius:10px;padding:12px;margin-top:14px;display:none;}
+.route-info.show{display:block;}
+.btn{width:100%;padding:10px;background:#f59e0b;color:white;border:none;border-radius:8px;font-weight:700;cursor:pointer;margin-top:10px;}
+.btn:hover{background:#d97706;}
+.status{font-size:11px;color:#64748b;text-align:center;margin-top:6px;}
+</style>
+</head>
+<body>
+<header>
+<h1>🌍 Interactive WebGIS Navigation Dashboard - Islamabad Restaurants</h1>
+<p>LAB 03 | OpenStreetMap + Leaflet.js + OSRM | 24-ARID-2233 NAZIA BATOOL | No API Key Required</p>
+</header>
+<div class="main">
+<div class="left">
+<h3>🍽️ 5 Restaurants - Islamabad</h3>
+<div id="locationList"></div>
+<div class="info-box"><label>Your Current Location</label><div class="value" id="curLoc" style="font-size:11px;">Detecting...</div></div>
+<button class="btn" onclick="locateUser()">📡 Find My Location</button>
+<div class="status" id="status">Allow location permission</div>
+<div class="route-info" id="routeBox">
+<h4 style="font-size:13px;margin-bottom:6px;">🚗 Route Details</h4>
+<div>📏 Distance: <span id="dist">-</span></div>
+<div>⏱️ Time: <span id="time">-</span></div>
+<div>🎯 To: <span id="toPlace">-</span></div>
+</div>
+</div>
+<div class="center"><div id="map"></div></div>
+<div class="right">
+<h3>👩‍🎓 Student Info</h3>
+<div class="info-box"><label>Name</label><div class="value">NAZIA BATOOL</div></div>
+<div class="info-box"><label>ARID No</label><div class="value">24-ARID-2233</div></div>
+<div class="info-box"><label>Assigned City</label><div class="value">Islamabad</div></div>
+<div class="info-box"><label>Assigned Category</label><div class="value" style="color:#b45309;">Restaurant</div></div>
+<div class="info-box" style="background:#fffbeb;border:1px solid #fde68a;">
+<label>Selected 5 Locations</label>
+<div style="font-size:11px;line-height:1.8;margin-top:5px;">
+1. Monal Restaurant<br>
+2. Chaaye Khana F-6<br>
+3. Khiva Restaurant F-7<br>
+4. Des Pardes Saidpur<br>
+5. Tuscany Courtyard
+</div>
+</div>
+</div>
+</div>
+<script>
+const locations=[
+{id:1,name:"The Monal Restaurant",lat:33.7445,lon:73.0868,desc:"Pir Sohawa Road - Hilltop view"},
+{id:2,name:"Chaaye Khana - F-6",lat:33.7315,lon:73.0585,desc:"F-6 Markaz, Islamabad"},
+{id:3,name:"Khiva Restaurant - F-7",lat:33.7184,lon:73.0545,desc:"F-7 Markaz, Jinnah Super"},
+{id:4,name:"Des Pardes - Saidpur",lat:33.7365,lon:73.0665,desc:"Saidpur Village - Desi Food"},
+{id:5,name:"Tuscany Courtyard",lat:33.7308,lon:73.0595,desc:"Kohsar Market, F-6/3"}
+];
+let map=L.map('map').setView([33.729,73.067],13);
+// FINAL FIX - NO API KEY, NO 403
+L.tileLayer('https://{s}.tile.openstreetmap.de/{z}/{x}/{y}.png',{
+attribution:'&copy; OpenStreetMap contributors',
+maxZoom:19
+}).addTo(map);
+
+let userMarker=null,userLatLng=null,routeLine=null,destMarker=null;
+function renderList(){
+let list=document.getElementById('locationList');
+locations.forEach(loc=>{
+let div=document.createElement('div');
+div.className='location-item';div.id='loc'+loc.id;
+div.innerHTML=`<div class="name">${loc.name}</div><div class="desc">${loc.desc}</div>`;
+div.onclick=()=>selectLoc(loc);list.appendChild(div);
+});
+}renderList();
+
+function locateUser(){
+document.getElementById('status').innerText='Locating...';
+navigator.geolocation.getCurrentPosition(pos=>{
+userLatLng=[pos.coords.latitude,pos.coords.longitude];
+document.getElementById('curLoc').innerText=userLatLng[0].toFixed(5)+', '+userLatLng[1].toFixed(5);
+document.getElementById('status').innerText='Location found ✓';
+if(userMarker) map.removeLayer(userMarker);
+userMarker=L.marker(userLatLng).addTo(map).bindPopup('You are here - Nazia').openPopup();
+map.setView(userLatLng,14);
+},err=>{
+document.getElementById('status').innerText='Error: '+err.message;
+alert('Location allow karo: '+err.message);
+},{enableHighAccuracy:true});
+}
+locateUser();
+
+async function selectLoc(loc){
+document.querySelectorAll('.location-item').forEach(e=>e.classList.remove('active'));
+document.getElementById('loc'+loc.id).classList.add('active');
+document.getElementById('toPlace').innerText=loc.name;
+if(destMarker) map.removeLayer(destMarker);
+destMarker=L.marker([loc.lat,loc.lon]).addTo(map).bindPopup(`<b>${loc.name}</b><br>${loc.desc}`).openPopup();
+if(!userLatLng){alert('Pehle location allow karo');locateUser();return;}
+document.getElementById('status').innerText='Calculating route...';
+let url=`https://router.project-osrm.org/route/v1/driving/${userLatLng[1]},${userLatLng[0]};${loc.lon},${loc.lat}?overview=full&geometries=geojson`;
+try{
+let res=await fetch(url);let data=await res.json();
+let route=data.routes[0];
+document.getElementById('dist').innerText=(route.distance/1000).toFixed(2)+' km';
+document.getElementById('time').innerText=Math.round(route.duration/60)+' min';
+document.getElementById('routeBox').classList.add('show');
+document.getElementById('status').innerText='Route ready ✓';
+if(routeLine) map.removeLayer(routeLine);
+routeLine=L.geoJSON(route.geometry,{style:{color:'#b45309',weight:6,opacity:.9}}).addTo(map);
+map.fitBounds(routeLine.getBounds(),{padding:[50,50]});
+}catch(e){document.getElementById('status').innerText='Routing failed';alert(e.message);}
+}
+</script>
+</body>
+</html>
